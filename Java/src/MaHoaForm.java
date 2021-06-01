@@ -8,6 +8,8 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
@@ -59,6 +61,7 @@ public class MaHoaForm extends javax.swing.JFrame {
         btnOpen = new javax.swing.JButton();
         btnEncrypt = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
+        btnOpenContent = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mã hóa");
@@ -72,7 +75,7 @@ public class MaHoaForm extends javax.swing.JFrame {
         jLabel1.setText("Mã hóa");
 
         jLabel2.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
-        jLabel2.setText("Nội dung:");
+        jLabel2.setText("File nội dung:");
         jLabel2.setToolTipText("");
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
@@ -110,6 +113,14 @@ public class MaHoaForm extends javax.swing.JFrame {
             }
         });
 
+        btnOpenContent.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+        btnOpenContent.setText("Chọn file");
+        btnOpenContent.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnOpenContentActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -144,20 +155,24 @@ public class MaHoaForm extends javax.swing.JFrame {
                             .addComponent(jLabel3)
                             .addComponent(jLabel2))
                         .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtContent, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtSecretKey, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(117, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(txtSecretKey, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(txtContent)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnOpenContent)))))
+                .addContainerGap(112, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(28, 28, 28)
                 .addComponent(jLabel1)
-                .addGap(36, 36, 36)
+                .addGap(33, 33, 33)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(txtContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtContent, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnOpenContent))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
@@ -177,7 +192,7 @@ public class MaHoaForm extends javax.swing.JFrame {
                     .addComponent(btnOpen)
                     .addComponent(btnEncrypt)
                     .addComponent(jButton3))
-                .addContainerGap(56, Short.MAX_VALUE))
+                .addContainerGap(54, Short.MAX_VALUE))
         );
 
         pack();
@@ -220,7 +235,8 @@ public class MaHoaForm extends javax.swing.JFrame {
 
     private void btnEncryptActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEncryptActionPerformed
         // TODO add your handling code here:
-        String content = txtContent.getText().trim();
+//        String content = txtContent.getText().trim();
+        String content = contentFile.trim();
         String secretKey = txtSecretKey.getText().trim();
         if (content.compareTo("") == 0 || secretKey.compareTo("") == 0) {
             JOptionPane.showMessageDialog(this, "Nội dung và khóa bí mật không được để trống", "Dữ liệu không hợp lệ", JOptionPane.ERROR_MESSAGE);
@@ -245,6 +261,25 @@ public class MaHoaForm extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnEncryptActionPerformed
 
+    private void btnOpenContentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnOpenContentActionPerformed
+        // TODO add your handling code here:
+
+        try {
+            String dataString = "";
+            File file = showFileContentDialog(true);
+            txtContent.setText(file.getAbsolutePath());
+            Scanner scanner = new Scanner(Paths.get(file.getAbsolutePath()), "UTF-8");
+            while (scanner.hasNext()) {
+                String data = scanner.nextLine();
+                dataString += data;
+                dataString += "\n";
+            }
+            contentFile = dataString;
+        } catch (IOException ex) {
+            Logger.getLogger(MaHoaForm.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btnOpenContentActionPerformed
+
     private File showFileDialog(final boolean open) {
         JFileChooser fc = new JFileChooser("Open an image");
         fc.setCurrentDirectory(new File(".").getAbsoluteFile());
@@ -264,6 +299,37 @@ public class MaHoaForm extends javax.swing.JFrame {
                     return "Image (*.jpg, *.jpeg, *.png, *.gif, *.tiff, *.bmp, *.dib)";
                 }
                 return "Image (*.png, *.bmp)";
+            }
+        };
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.addChoosableFileFilter(ff);
+
+        File f = null;
+        if (open && fc.showOpenDialog(this) == fc.APPROVE_OPTION) {
+            f = fc.getSelectedFile();
+        } else if (!open && fc.showSaveDialog(this) == fc.APPROVE_OPTION) {
+            f = fc.getSelectedFile();
+        }
+        return f;
+    }
+
+    private File showFileContentDialog(final boolean open) {
+        JFileChooser fc = new JFileChooser("Open a file");
+        fc.setCurrentDirectory(new File(".").getAbsoluteFile());
+        FileFilter ff = new FileFilter() {
+            public boolean accept(File f) {
+                String name = f.getName().toLowerCase();
+                if (open) {
+                    return f.isDirectory() || name.endsWith(".txt") || name.endsWith(".dat");
+                }
+                return f.isDirectory() || name.endsWith(".txt") || name.endsWith(".dat");
+            }
+
+            public String getDescription() {
+                if (open) {
+                    return "Image (*.txt, *.dat)";
+                }
+                return "Image (*.txt, *.dat)";
             }
         };
         fc.setAcceptAllFileFilterUsed(false);
@@ -314,12 +380,14 @@ public class MaHoaForm extends javax.swing.JFrame {
         });
     }
 
+    private String contentFile;
     private File dirFile = new File("images");
     private BufferedImage bufferedImageBefore;
     private BufferedImage bufferedImageAfter;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEncrypt;
     private javax.swing.JButton btnOpen;
+    private javax.swing.JButton btnOpenContent;
     private javax.swing.JScrollPane imageAffter;
     private javax.swing.JScrollPane imageBefore;
     private javax.swing.JButton jButton3;
